@@ -9,7 +9,7 @@ import {
   Connection,
   Node,
   Edge,
-  
+
 
   Background,
   useReactFlow,
@@ -20,8 +20,13 @@ import { TOOL_MODE_ENUM, ToolModeType } from '@/constant/workflow';
 import { cn } from '@/lib/utils';
 import NodePanel from './node-panel';
 import { useWorkflow } from '@/context/workflow-context';
-import { createNode, NodeType } from '@/lib/workflow/node-config';
+import { createNode, NodeType, NodeTypeEnum } from '@/lib/workflow/node-config';
+import { create } from 'domain';
+import StartNode from '@/components/workflow/custom-nodes/start/node';
+import { X } from 'lucide-react';
 
+
+const start_node=createNode({type:NodeTypeEnum.START});
 const initialNodes: Node[] = [
   { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
   { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
@@ -30,13 +35,18 @@ const initialEdges: Edge[] = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
 const WorkflowCanvas = () => {
 
-  const {view}= useWorkflow();
+  const { view } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
   const isPreview = view === 'preview';
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
- const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
-const isSelectMode = toolMode === TOOL_MODE_ENUM.SELECT;
+  const [nodes, setNodes] = useState<Node[]>([start_node]);
+  const [edges, setEdges] = useState<Edge[]>();
+  const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
+  const isSelectMode = toolMode === TOOL_MODE_ENUM.SELECT;
+
+
+  const nodeTypes = {
+    [NodeTypeEnum.START]: StartNode,
+  };
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
     [],
@@ -51,67 +61,69 @@ const isSelectMode = toolMode === TOOL_MODE_ENUM.SELECT;
     (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [],
   );
-  
+
   const onDragOver = useCallback((event: React.DragEvent) => {
-  event.preventDefault();
-  event.dataTransfer.dropEffect = "move";
-}, []);
-
-const onDrop = useCallback(
-  (event: React.DragEvent) => {
     event.preventDefault();
-    const node_type = event.dataTransfer.getData(
-      "application/reactflow"
-    ) as NodeType;
-    if (!node_type) return null;
+    event.dataTransfer.dropEffect = "move";
+  }, []);
 
-    const position = screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const node_type = event.dataTransfer.getData(
+        "application/reactflow"
+      ) as NodeType;
+      if (!node_type) return null;
 
-    const newNode = createNode({
-      type: node_type,
-      position,
-    });
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
 
-    setNodes((nds) => [...nds, newNode]);
-  },
-  [screenToFlowPosition]
-);
+      const newNode = createNode({
+        type: node_type,
+        position,
+      });
+
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [screenToFlowPosition]
+  );
 
 
 
   return (
     <>
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlow
+      <div style={{ width: '100vw', height: '100vh' }}>
+        <ReactFlow
 
-       className={cn(
-  isSelectMode ? "cursor-default" : "cursor-grab active:cursor-gra..."
-)}
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        fitView
+          className={cn(
+            isSelectMode ? "cursor-default" : "cursor-grab active:cursor-gra..."
+          )}
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          fitView
 
-        panOnDrag={!isSelectMode}
-panOnScroll={!isSelectMode}
-zoomOnScroll={!isSelectMode}
-selectionOnDrag={isSelectMode}
+          panOnDrag={!isSelectMode}
+          panOnScroll={!isSelectMode}
+          zoomOnScroll={!isSelectMode}
+          selectionOnDrag={isSelectMode}
+          defaultViewport={{x : 0, y:0, zoom:1.2}}
         >
 
-      <Background/>
-     {!isPreview && <NodePanel/>}
-      {!isPreview && <Controls  toolMode={toolMode}
-      setToolMode={setToolMode} />}
-      </ReactFlow>
-    </div>
-          </>
+          <Background />
+          {!isPreview && <NodePanel />}
+          {!isPreview && <Controls toolMode={toolMode}
+            setToolMode={setToolMode} />}
+        </ReactFlow>
+      </div>
+    </>
   );
 };
 
