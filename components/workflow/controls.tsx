@@ -1,19 +1,21 @@
+'use client';
 import { HandIcon, Maximize, MinusIcon, MousePointer, PlusIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { useReactFlow, useStore } from "@xyflow/react";
 import { useState } from "react";
+import { TOOL_MODE_ENUM, ToolModeType } from "@/constant/workflow";
 
-const TOOL_MODE_ENUM = {
-  SELECT: "select",
-  HAND: "hand",
-} as const;
+type Props = {
+  toolMode: ToolModeType;
+  setToolMode: (toolMode: ToolModeType) => void;
+};
 
-type ToolModeType = (typeof TOOL_MODE_ENUM)[keyof typeof TOOL_MODE_ENUM];
+const Controls = ({ toolMode, setToolMode }: Props) => {
 
-const Controls = () => {
+
   const { zoomIn, zoomOut, fitView } = useReactFlow();
-  const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
+
 
   const zoom = useStore((s) => s.transform[2]);
   const zoomPercent = Math.round(zoom * 100);
