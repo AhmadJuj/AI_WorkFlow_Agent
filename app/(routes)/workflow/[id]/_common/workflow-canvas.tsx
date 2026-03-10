@@ -24,6 +24,7 @@ import { createNode, NodeType, NodeTypeEnum } from '@/lib/workflow/node-config';
 import { create } from 'domain';
 import StartNode from '@/components/workflow/custom-nodes/start/node';
 import { X } from 'lucide-react';
+import AgentNode from '@/components/workflow/custom-nodes/agent/node';
 
 
 const start_node=createNode({type:NodeTypeEnum.START});
@@ -46,6 +47,7 @@ const WorkflowCanvas = () => {
 
   const nodeTypes = {
     [NodeTypeEnum.START]: StartNode,
+    [NodeTypeEnum.AGENT]: AgentNode,
   };
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),

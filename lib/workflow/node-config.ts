@@ -1,5 +1,6 @@
 import { Bot, GitBranch, Globe, MessageSquare, Play, Square } from "lucide-react";
 import { generateId } from "../helper";
+import { MODELS } from "./constants";
 
 export const NodeTypeEnum = {
   START: "start",
@@ -17,7 +18,7 @@ type NodeConfigBase = {
   label: string;
   icon: React.ElementType;
   color: string;
-  // inputs: Record<string, any>;
+  inputs: Record<string, any>;
   // outputs: string[];
 };
 
@@ -27,36 +28,69 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     label: "Start",
     icon: Play,
     color: "bg-emerald-500",
+    inputs: {
+      inputValue: "",
+    },
   },
   [NodeTypeEnum.AGENT]: {
     type: NodeTypeEnum.AGENT,
     label: "Agent",
     icon: Bot,
     color: "bg-blue-500",
+    inputs: {
+      label: "Agent",
+      instructions:"",
+      model:MODELS[0].value,
+      tools:[],
+      outputFormat:"text",
+      responseSchema:null,
+    },
   },
-  [NodeTypeEnum.IF_ELSE]: {
-    type: NodeTypeEnum.IF_ELSE,
-    label: "If / Else",
-    icon: GitBranch,
-    color: "bg-amber-500",
+[NodeTypeEnum.IF_ELSE]: {
+  type: NodeTypeEnum.IF_ELSE,
+  label: "If / Else",
+  color: "bg-orange-500",
+  icon: GitBranch,
+  inputs: {
+    conditions: [
+      {
+        caseName: "",
+        variable: "",
+        operator: "",
+        value: "",
+      },
+    ],
   },
-  [NodeTypeEnum.END]: {
-    type: NodeTypeEnum.END,
-    label: "End",
-    icon: Square,
-    color: "bg-rose-500",
+},
+[NodeTypeEnum.HTTP]: {
+  type: NodeTypeEnum.HTTP,
+  label: "HTTP",
+  color: "bg-blue-400",
+  icon: Globe,
+  inputs: {
+    method: "GET",
+    url: "",
+    headers: {},
+    body: {},
   },
-  [NodeTypeEnum.HTTP]: {
-    type: NodeTypeEnum.HTTP,
-    label: "HTTP",
-    icon: Globe,
-    color: "bg-violet-500",
+},
+[NodeTypeEnum.END]: {
+  type: NodeTypeEnum.END,
+  label: "End",
+  color: "bg-red-400",
+  icon: Square,
+  inputs: {
+    value: "",
   },
+},
   [NodeTypeEnum.COMMENT]: {
     type: NodeTypeEnum.COMMENT,
     label: "Comment",
     icon: MessageSquare,
     color: "bg-slate-400",
+    inputs:{
+      comments:"",
+    },
   },
 };
 
