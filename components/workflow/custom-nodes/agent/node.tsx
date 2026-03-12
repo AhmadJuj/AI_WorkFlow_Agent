@@ -2,6 +2,7 @@ import { NodeProps } from "@xyflow/react";
 import React from "react";
 import WorkflowNode from "../../workflow-node";
 import { MousePointer2Icon, PlayIcon } from "lucide-react";
+import AgentSettings from "./settings";
 
 
 const AgentNode = (props: NodeProps) => {
@@ -26,7 +27,8 @@ const AgentNode = (props: NodeProps) => {
         color={bgColor}
         settingTitle={`${label} Settings`}
         settingDescription="Call the model with instructions and tools"
-        settingComponent={ <></>}
+        settingComponent={ <AgentSettings id={id}
+        data = {data} /> }
       />
     </>
   );

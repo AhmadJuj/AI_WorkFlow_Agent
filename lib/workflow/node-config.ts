@@ -19,7 +19,7 @@ type NodeConfigBase = {
   icon: React.ElementType;
   color: string;
   inputs: Record<string, any>;
-  // outputs: string[];
+  outputs: string[];
 };
 
 export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
@@ -31,6 +31,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     inputs: {
       inputValue: "",
     },
+    outputs: ["input"],
   },
   [NodeTypeEnum.AGENT]: {
     type: NodeTypeEnum.AGENT,
@@ -45,6 +46,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       outputFormat:"text",
       responseSchema:null,
     },
+      outputs: ["output.text"],
   },
 [NodeTypeEnum.IF_ELSE]: {
   type: NodeTypeEnum.IF_ELSE,
@@ -61,6 +63,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       },
     ],
   },
+    outputs: ["output.if_else"],
 },
 [NodeTypeEnum.HTTP]: {
   type: NodeTypeEnum.HTTP,
@@ -73,6 +76,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     headers: {},
     body: {},
   },
+   outputs: ["output.body"],
 },
 [NodeTypeEnum.END]: {
   type: NodeTypeEnum.END,
@@ -82,6 +86,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
   inputs: {
     value: "",
   },
+   outputs: ["output.text"],
 },
   [NodeTypeEnum.COMMENT]: {
     type: NodeTypeEnum.COMMENT,
@@ -91,8 +96,9 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
     inputs:{
       comments:"",
     },
+     outputs: [],
   },
-};
+} as const;
 
 export const getNodeConfig = (type: NodeType) => {
   const nodetype = NODE_CONFIG?.[type];
@@ -120,7 +126,8 @@ export function createNode({
     data: {
       label: config.label,
       color: config.color,
-      // ... config.inputs
+      outputs: config.outputs,
+      ... config.inputs
     },
   };
 }

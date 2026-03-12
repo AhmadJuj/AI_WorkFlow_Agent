@@ -25,6 +25,8 @@ import { create } from 'domain';
 import StartNode from '@/components/workflow/custom-nodes/start/node';
 import { X } from 'lucide-react';
 import AgentNode from '@/components/workflow/custom-nodes/agent/node';
+import { set } from 'zod';
+import IfElseNode from '@/components/workflow/custom-nodes/if-else/node';
 
 
 const start_node=createNode({type:NodeTypeEnum.START});
@@ -35,12 +37,11 @@ const initialNodes: Node[] = [
 const initialEdges: Edge[] = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
 const WorkflowCanvas = () => {
+  const { view,nodes,edges,setNodes,setEdges } = useWorkflow();
 
-  const { view } = useWorkflow();
   const { screenToFlowPosition } = useReactFlow();
   const isPreview = view === 'preview';
-  const [nodes, setNodes] = useState<Node[]>([start_node]);
-  const [edges, setEdges] = useState<Edge[]>();
+ 
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
   const isSelectMode = toolMode === TOOL_MODE_ENUM.SELECT;
 
@@ -48,20 +49,21 @@ const WorkflowCanvas = () => {
   const nodeTypes = {
     [NodeTypeEnum.START]: StartNode,
     [NodeTypeEnum.AGENT]: AgentNode,
+    [NodeTypeEnum.IF_ELSE]: IfElseNode,
   };
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    [],
+    [setNodes],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [],
+    [setEdges],
   );
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [],
+    [setEdges],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -89,7 +91,7 @@ const WorkflowCanvas = () => {
 
       setNodes((nds) => [...nds, newNode]);
     },
-    [screenToFlowPosition]
+    [screenToFlowPosition, setNodes]
   );
 
 
