@@ -27,6 +27,8 @@ import { X } from 'lucide-react';
 import AgentNode from '@/components/workflow/custom-nodes/agent/node';
 import { set } from 'zod';
 import IfElseNode from '@/components/workflow/custom-nodes/if-else/node';
+import CommentNode from '@/components/workflow/custom-nodes/comment/node';
+import EndNode from '@/components/workflow/custom-nodes/end/node';
 
 
 const start_node=createNode({type:NodeTypeEnum.START});
@@ -50,6 +52,8 @@ const WorkflowCanvas = () => {
     [NodeTypeEnum.START]: StartNode,
     [NodeTypeEnum.AGENT]: AgentNode,
     [NodeTypeEnum.IF_ELSE]: IfElseNode,
+    [NodeTypeEnum.COMMENT]: CommentNode,
+    [NodeTypeEnum.END]: EndNode,
   };
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
