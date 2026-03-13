@@ -22,14 +22,24 @@ interface WorkflowContextType {
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
 
-export function WorkflowProvider({ children }: { children: React.ReactNode }) {
+export function WorkflowProvider({ 
+  children,
+  initialNodes,
+  initialEdges,
+  
+ }: { children: React.ReactNode,
+  workflowId: string;
+  initialNodes: Node[];
+  initialEdges: Edge[];
+ }) {
   const start_node = createNode({
     type: NodeTypeEnum.START,
   });
 
   const [view, setView] = useState<WorkflowView>("edit");
-  const [nodes, setNodes] = useState<Node[]>([start_node]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [nodes, setNodes] = useState<Node[]>(initialNodes.length > 0 ? initialNodes : [start_node]);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+
 const getUpstreamNodes = (nodeId: string) => {
   const upstream = new Set<string>();
 

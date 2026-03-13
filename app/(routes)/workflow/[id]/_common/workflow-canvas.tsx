@@ -21,29 +21,27 @@ import { cn } from '@/lib/utils';
 import NodePanel from './node-panel';
 import { useWorkflow } from '@/context/workflow-context';
 import { createNode, NodeType, NodeTypeEnum } from '@/lib/workflow/node-config';
-import { create } from 'domain';
 import StartNode from '@/components/workflow/custom-nodes/start/node';
-import { X } from 'lucide-react';
 import AgentNode from '@/components/workflow/custom-nodes/agent/node';
-import { set } from 'zod';
 import IfElseNode from '@/components/workflow/custom-nodes/if-else/node';
 import CommentNode from '@/components/workflow/custom-nodes/comment/node';
 import EndNode from '@/components/workflow/custom-nodes/end/node';
+import { useUpdateWorkflow } from '@/features/use-workflow';
+import { ActionBar, ActionBarGroup, ActionBarItem } from '@/components/ui/action-bar';
+import { Spinner } from '@/components/ui/spinner';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import Chat from '@/components/workflow/chat';
 
-
-const start_node=createNode({type:NodeTypeEnum.START});
-const initialNodes: Node[] = [
-  { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
-  { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
-];
-const initialEdges: Edge[] = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
-
-const WorkflowCanvas = () => {
-  const { view,nodes,edges,setNodes,setEdges } = useWorkflow();
+const WorkflowCanvas = ({ workflowId }: { workflowId: string }) => {
+  const { view, setView, nodes,edges,setNodes,setEdges } = useWorkflow();
 
   const { screenToFlowPosition } = useReactFlow();
   const isPreview = view === 'preview';
  
+const {mutate: updateWorkflow, isPending: isSaving} = useUpdateWorkflow(workflowId);
+
+const { hasUnsavedChanges, discardChanges } = useUnsavedChanges(nodes, edges);
+
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.HAND);
   const isSelectMode = toolMode === TOOL_MODE_ENUM.SELECT;
 
@@ -99,7 +97,14 @@ const WorkflowCanvas = () => {
   );
 
 
-
+const handleSaveChanges = () => {
+  updateWorkflow({ nodes, edges });
+};
+const handleDiscard = () => {
+  const result = discardChanges();
+  setNodes(result.nodes);
+  setEdges(result.edges);
+};
   return (
     <>
       <div style={{ width: '100vw', height: '100vh' }}>
@@ -130,7 +135,42 @@ const WorkflowCanvas = () => {
           {!isPreview && <Controls toolMode={toolMode}
             setToolMode={setToolMode} />}
         </ReactFlow>
+
+
+        <Chat
+          open={isPreview}
+          onOpenChange={(open) => setView(open ? 'preview' : 'edit')}
+          workflowId={workflowId}
+        />
       </div>
+
+
+<ActionBar
+  open={hasUnsavedChanges}
+  side="top"
+  align="center"
+  sideOffset={70}
+  className="max-w-xs"
+>
+  <ActionBarGroup>
+    <ActionBarItem
+      disabled={isSaving}
+      variant="ghost"
+      onClick={handleDiscard}
+    >
+      Discard
+    </ActionBarItem>
+    <ActionBarItem
+      disabled={isSaving}
+      variant="ghost"
+      onClick={handleSaveChanges}
+    >
+      {isSaving && <Spinner />}
+      Save Changes
+    </ActionBarItem>
+  </ActionBarGroup>
+</ActionBar>
+
     </>
   );
 };

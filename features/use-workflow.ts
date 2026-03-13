@@ -1,8 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { Workflow } from "@/lib/generated/prisma/client"
+import { Edge, Node as ReactFlowNode } from "@xyflow/react";
+import { useWorkflowStore } from "@/store/workflow-store";
 
 type CreateWorkflowPayload = {
   name: string;
@@ -13,6 +15,27 @@ type GetWorkType = {
   name: string;
   flowObject: any;
   id: string;
+};
+
+type WorkflowFlowObject = {
+  nodes: ReactFlowNode[];
+  edges: Edge[];
+};
+
+type WorkflowType = {
+  id: string;
+  name: string;
+  flowObject: string | WorkflowFlowObject;
+};
+
+const parseFlowObject = (
+  flowObject: WorkflowType["flowObject"]
+): WorkflowFlowObject => {
+  if (typeof flowObject === "string") {
+    return JSON.parse(flowObject) as WorkflowFlowObject;
+  }
+
+  return flowObject;
 };
 
 export const useGetWorkflows = () => {
@@ -50,12 +73,52 @@ export const useCreateWorkflow = () => {
 };
 
 export const useGetWorkflowById = (workflowId: string) => {
+  const { setSavedState } = useWorkflowStore();
+  
   return useQuery({
     queryKey: ["workflow", workflowId],
-    queryFn: async () =>
-      await axios
-        .get<{ data: GetWorkType }>(`/api/workflow/${workflowId}`)
-        .then((res) => res.data.data),
+    queryFn: async () => {
+      const res = await axios
+        .get<{ data: WorkflowType }>(`/api/workflow/${workflowId}`)
+        .then((res) => {
+          const result = res.data.data;
+          const flowObject = parseFlowObject(result.flowObject);
+
+          setSavedState(flowObject.nodes, flowObject.edges);
+          return {
+            ...result,
+            flowObject,
+          };
+        });
+      return res;
+    },
     enabled: !!workflowId,
+  });
+};
+
+export const useUpdateWorkflow = (workflowId: string) => {
+  const { setSavedState } = useWorkflowStore();
+  
+  return useMutation({
+    mutationFn: async (data: { nodes: ReactFlowNode[]; edges: Edge[] }) =>
+      await axios
+        .put<{ data: WorkflowType }>(`/api/workflow/${workflowId}`, data)
+        .then((res) => res.data),
+    onSuccess: (data) => {
+      const result = data.data;
+      const flowObject = parseFlowObject(result.flowObject);
+
+      setSavedState(flowObject.nodes, flowObject.edges);
+      toast.success("Workflow updated successfully");
+    },
+    onError: (error) => {
+      console.log("Update workflow failed", error);
+      const message =
+        error instanceof AxiosError && typeof error.response?.data?.error === "string"
+          ? error.response.data.error
+          : "Failed to update workflow";
+
+      toast.error(message);
+    },
   });
 };
