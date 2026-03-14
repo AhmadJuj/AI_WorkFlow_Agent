@@ -105,7 +105,8 @@ const AgentSettings = ({ id, data }: PropsType) => {
         <MentionInput
           nodeId={id}
           value={instructionValue}
-          placeholder="You are a helpful AI assistant ..."
+          placeholder="You are a helpful AI assistant ...
+          "
           multiline
           onChange={setInstructionValue}
           onBlur={() => handleChange("instructions", instructionValue)}

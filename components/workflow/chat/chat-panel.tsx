@@ -9,6 +9,8 @@ import { ConversationScrollButton } from "@/components/ai-elements/conversation"
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { PromptInputMessage, PromptInput, PromptInputBody, PromptInputTextarea, PromptInputFooter, PromptInputSubmit } from "@/components/ai-elements/prompt-input";
 import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import { create } from "domain";
+import { createWorkflowTransport } from "@/lib/workflow/transport";
 
 const ChatPanel = ({ workflowId }: { workflowId: string }) => {
   const [input, setInput] = useState<string>("");
@@ -16,10 +18,7 @@ const ChatPanel = ({ workflowId }: { workflowId: string }) => {
 
   const { messages, sendMessage, status, stop } = useChat({
     id: chatId ?? undefined,
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      body: { workflowId },
-    }),
+    transport: createWorkflowTransport({ workflowId }),
   });
 
   const isLoading =

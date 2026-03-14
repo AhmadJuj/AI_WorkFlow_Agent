@@ -1,6 +1,7 @@
 import { Bot, GitBranch, Globe, MessageSquare, Play, Square } from "lucide-react";
 import { generateId } from "../helper";
 import { MODELS } from "./constants";
+import { executeStartNode } from "@/components/workflow/custom-nodes/start/executor";
 
 export const NodeTypeEnum = {
   START: "start",
@@ -11,6 +12,13 @@ export const NodeTypeEnum = {
   COMMENT: "comment",
 } as const;
 
+
+
+export const NODE_EXECUTORS = {
+  [NodeTypeEnum.START]: executeStartNode,
+  
+}
+
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
 
 type NodeConfigBase = {
@@ -20,6 +28,15 @@ type NodeConfigBase = {
   color: string;
   inputs: Record<string, any>;
   outputs: string[];
+};
+
+
+export const getNodeExecutor = (type: NodeType) => {
+  const executor = NODE_EXECUTORS?.[type as keyof typeof NODE_EXECUTORS];
+  if (!executor) {
+    throw new Error(`No executor found for node type ${type}`);
+  }
+  return executor;
 };
 
 export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
