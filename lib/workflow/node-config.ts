@@ -2,6 +2,9 @@ import { Bot, GitBranch, Globe, MessageSquare, Play, Square } from "lucide-react
 import { generateId } from "../helper";
 import { MODELS } from "./constants";
 import { executeStartNode } from "@/components/workflow/custom-nodes/start/executor";
+import { executeAgentNode } from "./custom-executor/agentnode-executor";
+import { executeIfElseNode } from "./custom-executor/if-else-executor";
+import { executeEndNode } from "./custom-executor/end-executor";
 
 export const NodeTypeEnum = {
   START: "start",
@@ -16,6 +19,9 @@ export const NodeTypeEnum = {
 
 export const NODE_EXECUTORS = {
   [NodeTypeEnum.START]: executeStartNode,
+  [NodeTypeEnum.AGENT]: executeAgentNode,
+  [NodeTypeEnum.IF_ELSE]: executeIfElseNode,
+  [NodeTypeEnum.END]: executeEndNode,
   
 }
 
