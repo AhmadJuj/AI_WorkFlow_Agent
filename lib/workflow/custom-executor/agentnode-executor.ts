@@ -5,18 +5,110 @@ import { Node } from "@xyflow/react";
 import { Output } from "ai";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
 
+function safeJsonParse(value: string): unknown | null {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function summarizeProjects(projects: any[]): string {
+  if (projects.length === 0) {
+    return "No Supabase projects found.";
+  }
+
+  const lines = projects.map((project, index) => {
+    const name = project?.name || project?.ref || project?.id || "Unnamed project";
+    const refOrId = project?.ref || project?.id || "n/a";
+    const region = project?.region ? ` - ${project.region}` : "";
+    const status = project?.status ? ` - ${project.status}` : "";
+    return `${index + 1}. ${name} (${refOrId})${region}${status}`;
+  });
+
+  return `Found ${projects.length} Supabase project${projects.length === 1 ? "" : "s"}:\n${lines.join("\n")}`;
+}
+
+function extractReadableToolText(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const parsed = safeJsonParse(trimmed);
+    if (parsed !== null) {
+      const parsedText = extractReadableToolText(parsed);
+      if (parsedText) {
+        return parsedText;
+      }
+    }
+
+    return trimmed;
+  }
+
+  if (typeof value !== "object") {
+    return String(value);
+  }
+
+  const obj = value as Record<string, any>;
+
+  if (Array.isArray(obj.projects)) {
+    return summarizeProjects(obj.projects);
+  }
+
+  if (obj.data && Array.isArray(obj.data.projects)) {
+    return summarizeProjects(obj.data.projects);
+  }
+
+  if (Array.isArray(obj.content)) {
+    const textParts = obj.content
+      .map((part: any) => (typeof part?.text === "string" ? part.text.trim() : ""))
+      .filter(Boolean);
+
+    if (textParts.length > 0) {
+      const joined = textParts.join("\n");
+      const parsed = safeJsonParse(joined);
+      if (parsed !== null) {
+        const parsedText = extractReadableToolText(parsed);
+        if (parsedText) {
+          return parsedText;
+        }
+      }
+      return joined;
+    }
+  }
+
+  if (obj.result !== undefined) {
+    const resultText = extractReadableToolText(obj.result);
+    if (resultText) {
+      return resultText;
+    }
+  }
+
+  return JSON.stringify(obj, null, 2);
+}
+
 export async function executeAgentNode(
   node: Node,
   context: ExecutorContextType
 ): Promise<ExecutorResultType> {
   const { outputs, channel, history } = context;
+  const nodeData = node.data as any;
   const {
     instructions,
     outputFormat = "text",
     responsesSchema,
     model: selectedModel,
-    selectedTools = [],
-  } = node.data as any;
+  } = nodeData;
+
+  // Current node schema stores tool selection under `tools`.
+  // Keep a fallback to `selectedTools` for older saved workflows.
+  const selectedTools = nodeData.tools ?? nodeData.selectedTools ?? [];
 
   const replaceInstructions = replaceVariables(instructions, outputs);
 
@@ -46,6 +138,8 @@ export async function executeAgentNode(
 
   let fullText = "";
   let streamError = false;
+  let toolCallCount = 0;
+  let lastToolResult: unknown = undefined;
 
   try {
     for await (const chunk of result.fullStream) {
@@ -67,6 +161,7 @@ export async function executeAgentNode(
           break;
 
         case "tool-call":
+          toolCallCount += 1;
           await channel.emit("workflow.chunk", {
             type: "data-workflow-node",
             id: node.id,
@@ -83,6 +178,7 @@ export async function executeAgentNode(
           });
           break;
          case "tool-result":
+          lastToolResult = chunk.output;
           await channel.emit("workflow.chunk", {
             type: "data-workflow-node",
             id: node.id,
@@ -167,6 +263,27 @@ export async function executeAgentNode(
     } catch {
       // If the model returned a bare string, wrap it
       return { output: { result: trimmed } };
+    }
+  }
+
+  if (!fullText.trim()) {
+    // Some model/provider combinations produce tool-call/tool-result events but no final text-delta.
+    // Fall back to the SDK's aggregated text or the last tool output to avoid blank responses.
+    try {
+      const aggregatedText = await (result as any).text;
+      if (typeof aggregatedText === "string" && aggregatedText.trim()) {
+        fullText = extractReadableToolText(aggregatedText) ?? aggregatedText;
+      }
+    } catch {
+      // Ignore and continue to tool-result fallback.
+    }
+
+    if (!fullText.trim() && lastToolResult !== undefined) {
+      fullText = extractReadableToolText(lastToolResult) ?? "";
+    }
+
+    if (!fullText.trim() && toolCallCount > 0) {
+      fullText = "Tools were invoked, but the model did not return a final text response.";
     }
   }
 

@@ -112,7 +112,7 @@ export async function executeWorkflow(
     }
     const nodeType = node.type as NodeType;
     console.log(`[EXEC] Running node ${node.id} (${nodeType})`);
-    const executor = getNodeExecutor(nodeType);
+    const executor = await getNodeExecutor(nodeType);
     //Emit loading to client
     await channel.emit("workflow.chunk", {
       type: "data-workflow-node",

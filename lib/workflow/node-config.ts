@@ -2,9 +2,6 @@ import { Bot, GitBranch, Globe, MessageSquare, Play, Square } from "lucide-react
 import { generateId } from "../helper";
 import { MODELS } from "./constants";
 import { executeStartNode } from "@/components/workflow/custom-nodes/start/executor";
-import { executeAgentNode } from "./custom-executor/agentnode-executor";
-import { executeIfElseNode } from "./custom-executor/if-else-executor";
-import { executeEndNode } from "./custom-executor/end-executor";
 
 export const NodeTypeEnum = {
   START: "start",
@@ -17,15 +14,21 @@ export const NodeTypeEnum = {
 
 
 
-export const NODE_EXECUTORS = {
-  [NodeTypeEnum.START]: executeStartNode,
-  [NodeTypeEnum.AGENT]: executeAgentNode,
-  [NodeTypeEnum.IF_ELSE]: executeIfElseNode,
-  [NodeTypeEnum.END]: executeEndNode,
-  
-}
-
 export type NodeType = (typeof NodeTypeEnum)[keyof typeof NodeTypeEnum];
+
+// Lazy-load executors to prevent bundling server-only dependencies in client
+export const getNodeExecutors = async () => {
+  const { executeAgentNode } = await import("./custom-executor/agentnode-executor");
+  const { executeIfElseNode } = await import("./custom-executor/if-else-executor");
+  const { executeEndNode } = await import("./custom-executor/end-executor");
+  
+  return {
+    [NodeTypeEnum.START]: executeStartNode,
+    [NodeTypeEnum.AGENT]: executeAgentNode,
+    [NodeTypeEnum.IF_ELSE]: executeIfElseNode,
+    [NodeTypeEnum.END]: executeEndNode,
+  };
+}
 
 type NodeConfigBase = {
   type: NodeType;
@@ -37,8 +40,9 @@ type NodeConfigBase = {
 };
 
 
-export const getNodeExecutor = (type: NodeType) => {
-  const executor = NODE_EXECUTORS?.[type as keyof typeof NODE_EXECUTORS];
+export const getNodeExecutor = async (type: NodeType) => {
+  const executors = await getNodeExecutors();
+  const executor = executors?.[type as keyof typeof executors];
   if (!executor) {
     throw new Error(`No executor found for node type ${type}`);
   }

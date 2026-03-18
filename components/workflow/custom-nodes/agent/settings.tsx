@@ -8,12 +8,13 @@ import MentionInput from "../../mention-input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, ChevronsUpDownIcon, Plus, X } from "lucide-react";
-import { MODELS, TOOLS } from "@/lib/workflow/constants";
+import { MCPToolType, MODELS, TOOLS } from "@/lib/workflow/constants";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { JsonSchema } from "./json-schema";
+import McpDialog from "../../mcp/mcp-dialog";
 
 type PropsType = {
   id: string;
@@ -30,6 +31,8 @@ const AgentSettings = ({ id, data }: PropsType) => {
   const { updateNodeData } = useReactFlow();
   const [openModel, setOpenModel] = useState(false);
   const [openFormat, setOpenFormat] = useState(false);
+
+const [McpDialogOpen, setMcpDialogOpen]= useState(false);
 
   const [agentLabel, setAgentLabel] = useState(
     data?.label || "Agent"
@@ -55,9 +58,29 @@ const AgentSettings = ({ id, data }: PropsType) => {
   };
 
 
+const handleAddMcpTool = ({
+  label,
+  serverId,
+  selectedTools,
+}: {
+  label: string;
+  serverId: string;
+  selectedTools: MCPToolType[];
+}) => {
+  handleChange("tools", [
+    ...tools,
+    {
+      type: "mcp",
+      label,
+      serverId,
+      tools: selectedTools,
+    },
+  ]);
+};
+
   const handleAddTool = (toolId: string) => {
     if (toolId === "mcpServer") {
-      // Open dialog
+      setMcpDialogOpen(true);
       return;
     }
 
@@ -88,6 +111,7 @@ const AgentSettings = ({ id, data }: PropsType) => {
   };
 
   return (
+    <>
     <div className="space-y-4">
       <div className="space-y-2">
         <Label>Agent Name</Label>
@@ -312,6 +336,13 @@ const AgentSettings = ({ id, data }: PropsType) => {
   </div>
 )}
     </div>
+
+    <McpDialog
+    open={McpDialogOpen}
+    onOpenChange={setMcpDialogOpen}
+    onAdd={handleAddMcpTool}
+    />
+   </>
   );
 };
 
