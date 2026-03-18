@@ -67,7 +67,7 @@ export const NODE_CONFIG: Record<NodeType, NodeConfigBase> = {
       model:MODELS[0].value,
       tools:[],
       outputFormat:"text",
-      responseSchema:null,
+      responsesSchema:null,
     },
       outputs: ["output.text"],
   },

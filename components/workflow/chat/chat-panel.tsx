@@ -3,32 +3,49 @@
 import { useChat } from "@ai-sdk/react";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DefaultChatTransport } from "ai";
-import { ArrowUp, PlusIcon, SparkleIcon } from "lucide-react";
-import { ConversationScrollButton } from "@/components/ai-elements/conversation";
+import { ArrowUp, Check, PlusIcon, SparkleIcon, XIcon } from "lucide-react";
+import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { PromptInputMessage, PromptInput, PromptInputBody, PromptInputTextarea, PromptInputFooter, PromptInputSubmit } from "@/components/ai-elements/prompt-input";
 import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
-import { create } from "domain";
 import { createWorkflowTransport } from "@/lib/workflow/transport";
+import { getNodeConfig, NodeType } from "@/lib/workflow/node-config";
+import { TextShimmerLoader, TypingLoader } from "@/components/ui/loader";
+import { Spinner } from "@/components/ui/spinner";
+
+type NodeDataType = {
+  id: string;
+  nodeType: NodeType;
+  nodeName: string;
+  status: "loading" | "error" | "complete";
+  type:
+  | "text-delta"
+  | "tool-call"
+  | "tool-result";
+  toolCall?: { name: string };
+  toolResult?: { name: string; result: any };
+
+  output?: any;
+  error?: any;
+};
 
 const ChatPanel = ({ workflowId }: { workflowId: string }) => {
   const [input, setInput] = useState<string>("");
   const [chatId, setChatId] = useState<string | null>(null);
 
   const { messages, sendMessage, status, stop } = useChat({
-    id: chatId ?? undefined,
+    ...(chatId ? { id: chatId } : {}),
     transport: createWorkflowTransport({ workflowId }),
   });
 
+  const lastMessage = messages[messages.length - 1];
+  const stringOutput = lastMessage?.role === "assistant" && lastMessage?.parts?.some(
+    (part) => part.type === "text" && Boolean(part.text)
+  );
+  
   const isLoading =
     status === "submitted" ||
-    (status === "streaming" &&
-      Boolean(
-        messages[messages.length - 1]?.parts?.some(
-          (part) => part.type === "text" && Boolean(part.text)
-        )
-      ));
+    (status === "streaming" && !stringOutput);
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;
@@ -57,8 +74,8 @@ const ChatPanel = ({ workflowId }: { workflowId: string }) => {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {messages.length > 0 ? (
           <div className="flex-1 overflow-y-auto">
-            <div className="conversation h-full">
-              <div className="conversationContent mt-6 px-4 pb-4">
+            <Conversation className="h-full">
+              <ConversationContent className="mt-6 px-4 pb-4">
                 {messages.map((message) => (
                   <Message
                     key={message.id}
@@ -66,31 +83,60 @@ const ChatPanel = ({ workflowId }: { workflowId: string }) => {
                     id={message.id}
                   >
                     <MessageContent className="text-[14.5px]">
-                      {message.parts.map((part, index) => {
-                        switch (part.type) {
-                          case "text":
-                            return (
-                              <MessageResponse
-                                key={`${message.id}-${index}`}
-                              >
-                                {part.text}
+                      {(() => {
+                        // Collect workflow node data from parts and deduplicate by node id (keep latest)
+                        const nodeDataMap = new Map<string, NodeDataType>();
+                        const textParts: { text: string; index: number }[] = [];
+
+                        // From message parts (custom part types)
+                        message.parts?.forEach((part: any, index: number) => {
+                          if (part.type === "text") {
+                            textParts.push({ text: part.text, index });
+                          } else if (
+                            part.type === "data-workflow-node" ||
+                            part.type === "data-workflow-Node"
+                          ) {
+                            const d = part.data as NodeDataType;
+                            if (d?.id) nodeDataMap.set(d.id, d);
+                          }
+                        });
+
+                        // From message data (annotations array)
+                        ((message as any).data as NodeDataType[] | undefined)?.forEach((d) => {
+                          if (d?.id) nodeDataMap.set(d.id, d);
+                        });
+
+                        const nodes = Array.from(nodeDataMap.values());
+
+                        return (
+                          <>
+                            {nodes.map((nodeData) => (
+                              <NodeDisplay
+                                key={`${message.id}-node-${nodeData.id}`}
+                                data={nodeData}
+                              />
+                            ))}
+                            {textParts.map((tp) => (
+                              <MessageResponse key={`${message.id}-text-${tp.index}`}>
+                                {tp.text}
                               </MessageResponse>
-                            );
-                          default:
-                            return null;
-                        }
-                      })}
+                            ))}
+                          </>
+                        );
+                      })()}
                     </MessageContent>
                   </Message>
                 ))}
-              </div>
-              {isLoading ? (
-                <div className="px-2">
-                  <div></div>
-                </div>
-              ) : null}
+                {isLoading && (
+                  <Message from="assistant" id="loading-message">
+                    <MessageContent className="w-fit">
+                      <TypingLoader size="sm" className="mt-1 mb-1 p-1" />
+                    </MessageContent>
+                  </Message>
+                )}
+              </ConversationContent>
               <ConversationScrollButton />
-            </div>
+            </Conversation>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
@@ -129,6 +175,75 @@ const ChatPanel = ({ workflowId }: { workflowId: string }) => {
           </PromptInputFooter>
         </PromptInput>
       </div>
+    </div>
+  );
+};
+
+type NodeDisplayType = {
+  data: NodeDataType;
+};
+
+export const NodeDisplay = ({ data }: NodeDisplayType) => {
+  const nodeConfig = getNodeConfig(data.nodeType);
+  if (!nodeConfig) return null;
+
+  const NodeIcon = nodeConfig.icon;
+  const { status, output, error, toolCall, toolResult } = data;
+
+  return (
+    <div className="my-2">
+      {/* Node header: icon + name */}
+      <div className="flex items-center gap-2">
+        {status === "loading" ? (
+          <Spinner className="h-4 w-4" />
+        ) : status === "error" ? (
+          <XIcon className="h-4 w-4 text-destructive" />
+        ) : (
+          <NodeIcon className="h-4 w-4 text-muted-foreground" />
+        )}
+        <span className="text-sm font-semibold">{data.nodeName}</span>
+      </div>
+
+      {/* Tool calls */}
+      {(toolCall || toolResult) && (
+        <div className="ml-6 mt-1 px-3 border-l-2 border-border flex items-center gap-2">
+          {toolResult ? (
+            <>
+              <Check className="size-4 text-green-500" />
+              <span className="text-sm">{toolResult.name}</span>
+            </>
+          ) : (
+            <TextShimmerLoader />
+          )}
+        </div>
+      )}
+
+      {/* Node output */}
+      {output && status === "complete" && (
+        <div className="ml-6 mt-1">
+          {typeof output === "string" ? (
+            <MessageResponse>{output}</MessageResponse>
+          ) : (
+            <pre className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(output, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+
+      {/* Loading shimmer for in-progress nodes */}
+      {status === "loading" && (
+        <div className="ml-6 mt-1">
+          <TextShimmerLoader />
+        </div>
+      )}
+
+      {/* Error display */}
+      {status === "error" && (
+        <div className="ml-6 mt-1 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
+          {typeof error === "string" ? error : JSON.stringify(error)}
+        </div>
+      )}
     </div>
   );
 };

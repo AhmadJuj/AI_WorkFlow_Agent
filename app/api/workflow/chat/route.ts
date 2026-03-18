@@ -2,9 +2,10 @@
 import prisma from "@/lib/prisma";
 import { realtime } from "@/lib/real-time";
 import { executeWorkflow } from "@/lib/workflow/execute-workflow";
+
 import { Client } from "@upstash/qstash";
 import { serve } from "@upstash/workflow/nextjs";
-import { Edge } from "@xyflow/react";
+import { Edge, Node } from "@xyflow/react";
 import { UIMessage } from "ai";
 
 export const GET = async (req: Request) => {
@@ -20,16 +21,40 @@ export const GET = async (req: Request) => {
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+
+      // Initialize an assistant message so UI data/text chunks have a target message.
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({
+            type: "start",
+            messageId: `assistant-${workflowRunId}`,
+          })}\n\n`
+        )
+      );
       
       channel.subscribe({
         
         events: ["workflow.chunk"],
         history: true,
         onData({ event, data, channel }) {
+          const finishReason =
+            (data as any)?.finishReason ?? (data as any)?.reason ?? "stop";
+
+          const streamChunk =
+            (data as any)?.type === "finish"
+              ? {
+                  type: "finish",
+                  finishReason,
+                }
+              : data;
+
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+            encoder.encode(`data: ${JSON.stringify(streamChunk)}\n\n`)
           );
-          if (data.type === "finish") controller.close();
+
+          if ((streamChunk as any).type === "finish") {
+            controller.close();
+          }
         }
       });
 
@@ -42,7 +67,10 @@ export const GET = async (req: Request) => {
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-     
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "x-vercel-ai-ui-message-stream": "v1",
+      "x-accel-buffering": "no",
     }
   });
 };

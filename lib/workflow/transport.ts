@@ -23,9 +23,13 @@ export const createWorkflowTransport = ({ workflowId }: { workflowId: string }) 
     fetch: async (input, init) => {
       const triggerRes = await fetch(input, init);
       const data = await triggerRes.json();
-      const workflowRunId = data.workflowRunId;
+      const workflowRunId = data?.workflowRunId;
 
-      return fetch(`/api/workflow/chatid-${workflowRunId}`, {
+      if (!workflowRunId) {
+        return new Response("Missing workflow run id", { status: 500 });
+      }
+
+      return fetch(`/api/workflow/chat?id=${encodeURIComponent(workflowRunId)}`, {
         method: "GET",
       });
     }

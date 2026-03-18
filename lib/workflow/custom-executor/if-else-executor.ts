@@ -1,7 +1,7 @@
 import { ExecutorContextType } from "@/types/workflow";
 import { Node } from "@xyflow/react";
 import { replaceVariables } from "@/lib/helper";
-import { Parser } from "expr-eval";
+
 type Condition = {
   caseName?: string;
   variable?: string;
@@ -29,36 +29,53 @@ export async function executeIfElseNode(
     )
       continue;
 
-    const variable = replaceVariables(condition.variable, outputs);
-    const value = condition.value;
+    const variable = replaceVariables(condition.variable, outputs).trim();
+    const value = condition.value.trim();
 
-    const variableExp = needsQuoting(variable)
-      ? JSON.stringify(variable)
-      : variable;
-    const valueExp = needsQuoting(value) 
-      ? JSON.stringify(value) 
-      : value;
+    console.log(`[IF_ELSE] Evaluating: "${variable}" ${condition.operator} "${value}"`);
 
-    const exp = `${variableExp} ${condition.operator} ${valueExp}`;
+    let result = false;
 
-    try {
-      const parser = new Parser();
-      const result = parser.evaluate(exp);
-      if (result) {
-        return {
-          output: {
-            result: true,
-            selectedBranch: `condition-${i}`,
-          },
-        };
-      }
-    } catch (error) {
-      console.log("Condition evaluation error:", error);
-      throw new Error(`Error evaluating condition: ${error}`);
+    // Try numeric comparison if both sides are numbers
+    const numVariable = Number(variable);
+    const numValue = Number(value);
+    const bothNumeric = !isNaN(numVariable) && !isNaN(numValue) && variable.trim() !== "" && value.trim() !== "";
+
+    switch (condition.operator) {
+      case "==":
+        result = bothNumeric ? numVariable === numValue : variable === value;
+        break;
+      case "!=":
+        result = bothNumeric ? numVariable !== numValue : variable !== value;
+        break;
+      case ">":
+        result = bothNumeric ? numVariable > numValue : variable > value;
+        break;
+      case "<":
+        result = bothNumeric ? numVariable < numValue : variable < value;
+        break;
+      case ">=":
+        result = bothNumeric ? numVariable >= numValue : variable >= value;
+        break;
+      case "<=":
+        result = bothNumeric ? numVariable <= numValue : variable <= value;
+        break;
+      default:
+        console.log(`[IF_ELSE] Unknown operator: ${condition.operator}`);
+        break;
+    }
+
+    console.log(`[IF_ELSE] Result: ${result}`);
+
+    if (result) {
+      return {
+        output: {
+          result: true,
+          selectedBranch: `condition-${i}`,
+        },
+      };
     }
   }
-
-
 
   return { 
     output: {
@@ -66,9 +83,4 @@ export async function executeIfElseNode(
       selectedBranch: "else",
     },
   };
-}
-
-function needsQuoting(val: string): boolean {
-  // Check if val does not already start and end with a quote
-  return !/^["'].*["']$/.test(val) && isNaN(Number(val));
 }

@@ -5,7 +5,7 @@ export default withAuth(
   },
   {
     // Middleware still runs on all routes, but doesn't protect the home route
-    publicPaths: ["/"], // e.g. ["/api/public", "/blog", "/about"]
+    publicPaths: ["/","/api/upstash/trigger", "/api/workflow/chat"], // e.g. ["/api/public", "/blog", "/about"]
   }
 );
 
