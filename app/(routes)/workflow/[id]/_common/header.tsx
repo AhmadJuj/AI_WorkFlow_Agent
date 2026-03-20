@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWorkflow } from "@/context/workflow-context";
+import CodeDialog from "@/components/workflow/code-dialog";
 
 type PropsType = {
   isLoading?: boolean;
@@ -25,7 +26,7 @@ const tabs = [
   { id: "preview", label: "Preview", icon: Play },
 ] as const;
 
-const Header = ({ name, isLoading }: PropsType) => {
+const Header = ({ name, isLoading , workflowId}: PropsType) => {
   const { view, setView } = useWorkflow();
 
   const zIndex = view === "preview" ? "z-99" : "";
@@ -90,10 +91,8 @@ const Header = ({ name, isLoading }: PropsType) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="icon" className="h-8 gap-1.5">
-              <Code className="w-3.5 h-3.5" />
-              Code
-            </Button>
+            <CodeDialog workflowId={workflowId} />
+
           </div>
 
         </div>

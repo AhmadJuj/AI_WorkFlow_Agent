@@ -26,11 +26,13 @@ export async function streamAgentAction({
   history,
   jsonOutput,
   selectedTools,
+  maxOutputTokens,
 }: {
   model: string;
   instructions: string;
   history: UIMessage[];
   jsonOutput?: any;
+  maxOutputTokens?: number;
   selectedTools: Array<
     | { type: "native"; value: string }
     | { type: "mcp"; value: string; serverId: string; tools:{name: string} [] }
@@ -104,6 +106,7 @@ ${toolList ? `**Available tools:\n${toolList}` : ""}`.trim();
     system: systemPrompt,
     messages: modelMessage,
     tools: Object.keys(tools).length > 0 ? tools : undefined,
+    maxOutputTokens: maxOutputTokens ?? 4000,
     stepCount: stepCountIs(8),
     ...jsonOutput,
     onFinish: async () => {

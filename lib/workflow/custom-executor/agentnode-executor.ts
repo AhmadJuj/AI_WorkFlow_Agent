@@ -29,6 +29,36 @@ function summarizeProjects(projects: any[]): string {
   return `Found ${projects.length} Supabase project${projects.length === 1 ? "" : "s"}:\n${lines.join("\n")}`;
 }
 
+function summarizeWebSearchResults(rawResults: any): string | null {
+  const results = Array.isArray(rawResults)
+    ? rawResults
+    : rawResults && typeof rawResults === "object"
+      ? [rawResults]
+      : [];
+
+  if (results.length === 0) {
+    return null;
+  }
+
+  const top = results.slice(0, 5);
+  const lines = top.map((item: any, index: number) => {
+    const title = item?.title || item?.url || item?.id || `Result ${index + 1}`;
+    const date = item?.publishedDate ? ` (${String(item.publishedDate).slice(0, 10)})` : "";
+
+    const rawSnippet = typeof item?.text === "string" ? item.text.replace(/\s+/g, " ").trim() : "";
+    const snippet = rawSnippet
+      ? rawSnippet.length > 260
+        ? `${rawSnippet.slice(0, 260)}...`
+        : rawSnippet
+      : "No summary available.";
+
+    return `${index + 1}. ${title}${date}\n   ${snippet}`;
+  });
+
+  const totalText = results.length > top.length ? `\n\nShowing top ${top.length} of ${results.length} results.` : "";
+  return `Latest findings from web search:\n${lines.join("\n\n")}${totalText}`;
+}
+
 function extractReadableToolText(value: unknown): string | null {
   if (value === null || value === undefined) {
     return null;
@@ -65,6 +95,13 @@ function extractReadableToolText(value: unknown): string | null {
     return summarizeProjects(obj.data.projects);
   }
 
+  if (obj.resolvedSearchType && obj.results) {
+    const summarized = summarizeWebSearchResults(obj.results);
+    if (summarized) {
+      return summarized;
+    }
+  }
+
   if (Array.isArray(obj.content)) {
     const textParts = obj.content
       .map((part: any) => (typeof part?.text === "string" ? part.text.trim() : ""))
@@ -93,6 +130,21 @@ function extractReadableToolText(value: unknown): string | null {
   return JSON.stringify(obj, null, 2);
 }
 
+function toPreviewText(value: unknown, maxChars = 1200): string {
+  const readable = extractReadableToolText(value);
+  const text = (readable ?? "").trim();
+
+  if (!text) {
+    return "Tool returned data.";
+  }
+
+  if (text.length <= maxChars) {
+    return text;
+  }
+
+  return `${text.slice(0, maxChars)}\n\n...[truncated ${text.length - maxChars} chars]`;
+}
+
 export async function executeAgentNode(
   node: Node,
   context: ExecutorContextType
@@ -104,6 +156,7 @@ export async function executeAgentNode(
     outputFormat = "text",
     responsesSchema,
     model: selectedModel,
+    maxOutputTokens,
   } = nodeData;
 
   // Current node schema stores tool selection under `tools`.
@@ -134,6 +187,7 @@ export async function executeAgentNode(
     history,
     jsonOutput,
     selectedTools,
+    maxOutputTokens,
   });
 
   let fullText = "";
@@ -155,7 +209,7 @@ export async function executeAgentNode(
               nodeName: node.data.label,
               status: "loading",
               type: "text-delta",
-              output: fullText,
+              output: chunk.text,
             },
           });
           break;
@@ -188,11 +242,10 @@ export async function executeAgentNode(
               nodeName: node.data.label,
               status: "loading",
               type: "tool-result",
-              output: fullText,
               toolResult: {
                 toolCallId: chunk.toolCallId,
                 name: chunk.toolName,
-                result: chunk.output,
+                result: toPreviewText(chunk.output),
               },
             },
           });
@@ -233,6 +286,7 @@ export async function executeAgentNode(
         history,
         jsonOutput: undefined,
         selectedTools,
+        maxOutputTokens,
       });
 
       fullText = "";

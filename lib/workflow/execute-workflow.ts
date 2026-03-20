@@ -4,6 +4,30 @@ import TopologicalSort from "topological-sort";
 import { getNodeExecutor, NodeType, NodeTypeEnum } from "./node-config";
 import { ExecutorContextType } from "@/types/workflow";
 
+const STREAM_TEXT_CHUNK_SIZE = 1800;
+const NODE_OUTPUT_PREVIEW_LIMIT = 8000;
+
+function chunkText(text: string, chunkSize = STREAM_TEXT_CHUNK_SIZE): string[] {
+  if (!text) return [];
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+function toNodeOutputPreview(value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  if (value.length <= NODE_OUTPUT_PREVIEW_LIMIT) {
+    return value;
+  }
+
+  return `${value.slice(0, NODE_OUTPUT_PREVIEW_LIMIT)}\n\n...[truncated ${value.length - NODE_OUTPUT_PREVIEW_LIMIT} chars]`;
+}
+
 
 export function topologicalSort(nodes: Node[], edges: Edge[]) {
   const ts = new TopologicalSort(new Map());
@@ -137,16 +161,21 @@ export async function executeWorkflow(
           type: "text-start",
           id: textPartId,
         });
-        await channel.emit("workflow.chunk", {
-          type: "text-delta",
-          id: textPartId,
-          delta: result.output.text,
-        });
+        const textChunks = chunkText(result.output.text);
+        for (const textChunk of textChunks) {
+          await channel.emit("workflow.chunk", {
+            type: "text-delta",
+            id: textPartId,
+            delta: textChunk,
+          });
+        }
         await channel.emit("workflow.chunk", {
           type: "text-end",
           id: textPartId,
         });
       }
+
+      const resolvedOutput = result.output?.text || result.output;
 
       await channel.emit("workflow.chunk", {
         type: "data-workflow-node",
@@ -156,7 +185,7 @@ export async function executeWorkflow(
           nodeType: node.type,
           nodeName: node.data.label,
           status: "complete",
-          output: result.output?.text || result.output,
+          output: toNodeOutputPreview(resolvedOutput),
         }
       })
 
