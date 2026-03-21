@@ -13,7 +13,7 @@
     "@ai-sdk/mcp": "^1.0.2",
     "@ai-sdk/react": "^3.0.3",
     "@diceui/tags-input": "^0.7.2",
-    "@exalabs/ai-sdk": "^1.0.5",
+    "@exalabs/ai-sdk": "^2.0.0",
     "@floating-ui/react": "^0.27.19",
     "@hookform/resolvers": "^5.2.2",
     "@kinde-oss/kinde-auth-nextjs": "^2.11.0",
