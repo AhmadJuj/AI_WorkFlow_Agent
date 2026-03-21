@@ -34,7 +34,7 @@ yarn-error.log*
 .env*
 
 
-/public/embed/
+
 # vercel
 /AI_Agent
 .vercel
