@@ -45,13 +45,14 @@ export type MessageResponseProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const MessageResponse = memo(
-  ({ className, children, ...props }: MessageResponseProps) => (
+  ({ className, children, dir, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
         "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       children={typeof children === "string" ? children : undefined}
+      dir={dir as "auto" | "ltr" | "rtl" | undefined}
       {...props}
     />
   ),
