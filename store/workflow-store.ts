@@ -16,6 +16,7 @@ export const useWorkflowStore = create<WorkflowStoreState>((set) => ({
     set({
       savedNodes: nodes,
       savedEdges: edges,
+      
     }),
   resetSavedState: () =>
     set({
