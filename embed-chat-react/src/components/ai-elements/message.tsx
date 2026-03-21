@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { UIMessage } from "ai";
-import { memo, type HTMLAttributes } from "react";
+import { memo, type ComponentProps, type HTMLAttributes } from "react";
 import { Streamdown } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -40,19 +40,18 @@ export const MessageContent = ({
   </div>
 );
 
-export type MessageResponseProps = HTMLAttributes<HTMLDivElement> & {
+export type MessageResponseProps = Omit<ComponentProps<typeof Streamdown>, "children"> & {
   children: React.ReactNode;
 };
 
 export const MessageResponse = memo(
-  ({ className, children, dir, ...props }: MessageResponseProps) => (
+  ({ className, children, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
         "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       children={typeof children === "string" ? children : undefined}
-      dir={dir as "auto" | "ltr" | "rtl" | undefined}
       {...props}
     />
   ),
