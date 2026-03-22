@@ -2,9 +2,18 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import { Workflow } from "@/lib/generated/prisma/client"
 import { Edge, Node as ReactFlowNode } from "@xyflow/react";
 import { useWorkflowStore } from "@/store/workflow-store";
+
+type Workflow = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  flowObject: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 type CreateWorkflowPayload = {
   name: string;
