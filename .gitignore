@@ -34,7 +34,7 @@ yarn-error.log*
 .env*
 
 /static
-/embed-chat-react
+
 
 # vercel
 /AI_Agent
