@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useWorkflow } from "@/context/workflow-context";
 import CodeDialog from "@/components/workflow/code-dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type PropsType = {
   isLoading?: boolean;
@@ -28,6 +29,7 @@ const tabs = [
 
 const Header = ({ name, isLoading , workflowId}: PropsType) => {
   const { view, setView } = useWorkflow();
+  const isMobile = useIsMobile();
 
   const zIndex = view === "preview" ? "z-99" : "";
 
@@ -79,20 +81,21 @@ const Header = ({ name, isLoading , workflowId}: PropsType) => {
           </div>
 
           <div className="flex items-center gap-2 bg-card p-1 rounded-lg">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <CodeDialog workflowId={workflowId} />
-
+            {!isMobile && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8">
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {!isMobile && <CodeDialog workflowId={workflowId} />}
           </div>
 
         </div>

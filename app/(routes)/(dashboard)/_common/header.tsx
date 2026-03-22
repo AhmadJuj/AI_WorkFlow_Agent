@@ -10,14 +10,19 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const isDark = theme === "dark";
   const { user } = useKindeBrowserClient();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="border-b border-border bg-background">
@@ -30,9 +35,20 @@ const Header = () => {
             size="icon"
             className="relative rounded-full size-8"
             onClick={() => setTheme(isDark ? "light" : "dark")}
+            disabled={!mounted}
           >
-            <SunIcon className={cn("absolute h-5 w-5", isDark ? "scale-100" : "scale-0")} />
-            <MoonIcon className={cn("absolute h-5 w-5", isDark ? "scale-0" : "scale-100")} />
+            <SunIcon
+              className={cn(
+                "absolute h-5 w-5 transition-transform",
+                mounted ? (isDark ? "scale-100" : "scale-0") : "scale-100"
+              )}
+            />
+            <MoonIcon
+              className={cn(
+                "absolute h-5 w-5 transition-transform",
+                mounted ? (isDark ? "scale-0" : "scale-100") : "scale-0"
+              )}
+            />
           </Button>
 
           <DropdownMenu>

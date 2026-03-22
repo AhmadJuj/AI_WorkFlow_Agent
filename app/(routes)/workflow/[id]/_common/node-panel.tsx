@@ -1,38 +1,52 @@
-import { cn } from "@/lib/utils";
-import { getNodeConfig, NodeTypeEnum } from "@/lib/workflow/node-config";
-import { Panel } from "@xyflow/react";
+"use client";
 
-const NodePanel = () => {
-  const NODE_LIST = [
-    {
-      group: "Core",
-      items: [NodeTypeEnum.AGENT, NodeTypeEnum.END, NodeTypeEnum.COMMENT],
-    },
-    {
-      group: "Logic",
-      items: [NodeTypeEnum.IF_ELSE],
-    },
-    {
-      group: "Network",
-      items: [NodeTypeEnum.HTTP],
-    },
-  ];
- const onDragStart = (event: React.DragEvent, nodeType: string) => {
-  event.dataTransfer.setData("application/reactflow", nodeType);
-  event.dataTransfer.effectAllowed = "move";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { getNodeConfig, NodeType, NodeTypeEnum } from "@/lib/workflow/node-config";
+
+type NodePanelProps = {
+  onAddNode: (nodeType: NodeType) => void;
 };
+
+const NODE_LIST = [
+  {
+    group: "Core",
+    items: [NodeTypeEnum.AGENT, NodeTypeEnum.END, NodeTypeEnum.COMMENT],
+  },
+  {
+    group: "Logic",
+    items: [NodeTypeEnum.IF_ELSE],
+  },
+  {
+    group: "Network",
+    items: [NodeTypeEnum.HTTP],
+  },
+] as const;
+
+const NodePanel = ({ onAddNode }: NodePanelProps) => {
+  const isMobile = useIsMobile();
+
+  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData("application/reactflow", nodeType);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
   return (
-    <Panel
-      position="top-left"
-      className="flex flex-col w-56 top-10! h-fit bg-card shadow-xl pb-5 rounded-lg"
+    <div
+      className={cn(
+        "absolute flex flex-col rounded-lg bg-card shadow-xl z-40",
+        isMobile
+          ? "inset-x-2 bottom-24 left-2 right-2 border border-border/70"
+          : "top-10 left-4 h-fit w-56 pb-5"
+      )}
     >
-      <div className="flex-1 p-4 space-y-1">
+      <div className={cn("flex-1", isMobile ? "p-3" : "space-y-1 p-4")}>
         {NODE_LIST.map((group) => (
           <div key={group.group} className="space-y-1">
-            <h4 className="text-[11px] font-medium text-muted-foreground px-1">
+            <h4 className="px-1 text-[11px] font-medium text-muted-foreground">
               {group.group}
             </h4>
-            <div className="space-y-1">
+            <div className={cn(isMobile ? "grid grid-cols-2 gap-1.5" : "space-y-1")}>
               {group.items.map((nodeType) => {
                 const config = getNodeConfig(nodeType);
                 if (!config) return null;
@@ -41,29 +55,24 @@ const NodePanel = () => {
                 return (
                   <button
                     key={nodeType}
-                    draggable
-                    onDragStart={(e)=> onDragStart(e,nodeType)}
-                    disabled={false}
+                    draggable={!isMobile}
+                    onDragStart={(e) => onDragStart(e, nodeType)}
+                    onClick={() => isMobile && onAddNode(nodeType)}
                     className={cn(
-                      "flex items-center gap-3 p-1 w-full rounded-md",
-                      "hover:bg-accent transition-all",
-                      "cursor-grab active:cursor-grabbing",
-                      "disabled:opacity-50",
-                      "disabled:pointer-events-none"
+                      "flex w-full items-center gap-3 rounded-md hover:bg-accent transition-all",
+                      isMobile ? "cursor-pointer p-2" : "cursor-grab active:cursor-grabbing p-1"
                     )}
                   >
                     <div
                       className={cn(
-                        "rounded-sm size-7 flex items-center justify-center",
+                        "flex size-7 items-center justify-center rounded-sm",
                         config.color
                       )}
                     >
                       <Icon className="size-3.5 text-white" />
                     </div>
 
-                    <span className="text-sm font-medium text-foreground">
-                      {config.label}
-                    </span>
+                    <span className="text-sm font-medium text-foreground">{config.label}</span>
                   </button>
                 );
               })}
@@ -71,7 +80,7 @@ const NodePanel = () => {
           </div>
         ))}
       </div>
-    </Panel>
+    </div>
   );
 };
 

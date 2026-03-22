@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Bot,
-  BrainCircuit,
   Check,
   Clock3,
   Layers3,
@@ -16,8 +15,12 @@ import {
   RegisterLink,
 } from "@kinde-oss/kinde-auth-nextjs/components";
 
-import Logo from "@/components/logo";
+
 import { Button } from "@/components/ui/button";
+import { AnimatedSection } from "@/components/landing/animated-section";
+import { AnimatedCounter } from "@/components/landing/animated-counter";
+import { HeroLottie } from "@/components/landing/hero-lottie";
+import { LandingThemeToggle } from "@/components/landing/landing-theme-toggle";
 
 const featureCards = [
   {
@@ -91,31 +94,34 @@ const faqs = [
 
 const LandingPage = () => {
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-[-220px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/18 blur-3xl" />
-        <div className="absolute right-[-120px] top-[240px] h-[320px] w-[320px] rounded-full bg-chart-2/18 blur-3xl" />
-        <div className="absolute bottom-[-140px] left-[-110px] h-[290px] w-[290px] rounded-full bg-chart-1/22 blur-3xl" />
+    <main className="relative bg-background text-foreground">
+      {/* Animated background blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/2 top-[-220px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/18 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
+        <div className="absolute right-[-120px] top-[240px] h-[320px] w-[320px] rounded-full bg-chart-2/18 blur-3xl animate-[pulse_8s_ease-in-out_infinite_1s]" />
+        <div className="absolute bottom-[-140px] left-[-110px] h-[290px] w-[290px] rounded-full bg-chart-1/22 blur-3xl animate-[pulse_7s_ease-in-out_infinite_2s]" />
       </div>
 
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md">
+      {/* ─── Header ─── */}
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md animate-[slideDown_0.5s_ease-out]">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Logo />
+       
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <Link className="transition-colors hover:text-primary" href="#features">
+            <Link className="transition-colors duration-200 hover:text-primary" href="#features">
               Features
             </Link>
-            <Link className="transition-colors hover:text-primary" href="#how-it-works">
+            <Link className="transition-colors duration-200 hover:text-primary" href="#how-it-works">
               How it works
             </Link>
-            <Link className="transition-colors hover:text-primary" href="#pricing">
+            <Link className="transition-colors duration-200 hover:text-primary" href="#pricing">
               Pricing
             </Link>
-            <Link className="transition-colors hover:text-primary" href="#faq">
+            <Link className="transition-colors duration-200 hover:text-primary" href="#faq">
               FAQ
             </Link>
           </nav>
           <div className="flex items-center gap-2">
+            <LandingThemeToggle />
             <LoginLink>
               <Button variant="ghost" className="hidden sm:inline-flex">
                 Sign in
@@ -129,212 +135,304 @@ const LandingPage = () => {
             </RegisterLink>
           </div>
         </div>
+        <div className="border-t border-border/60 md:hidden">
+          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+            <nav className="no-scrollbar flex items-center gap-2 overflow-x-auto py-2 text-sm font-medium whitespace-nowrap">
+              <Link className="rounded-full border border-border/70 bg-card/70 px-3 py-1.5 transition-colors hover:text-primary" href="#features">
+                Features
+              </Link>
+              <Link className="rounded-full border border-border/70 bg-card/70 px-3 py-1.5 transition-colors hover:text-primary" href="#how-it-works">
+                How it works
+              </Link>
+              <Link className="rounded-full border border-border/70 bg-card/70 px-3 py-1.5 transition-colors hover:text-primary" href="#pricing">
+                Pricing
+              </Link>
+              <Link className="rounded-full border border-border/70 bg-card/70 px-3 py-1.5 transition-colors hover:text-primary" href="#faq">
+                FAQ
+              </Link>
+            </nav>
+          </div>
+        </div>
       </header>
 
-      <section className="mx-auto w-full max-w-6xl px-4 pb-14 pt-16 sm:px-6 sm:pt-20 lg:px-8 lg:pt-24">
+      {/* ─── Hero ─── */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-14 pt-6 sm:px-6 sm:pt-6 lg:px-8 lg:pt-14">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div className="space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary sm:text-sm">
-              <Sparkles className="size-4" />
-              AI orchestration for modern teams
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-balance text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                Build production workflows with AI in one visual canvas
-              </h1>
-              <p className="max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-                Flowagent helps teams design, test, and scale agent-driven workflows without glue code. Go from idea to live automation in minutes, not weeks.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <RegisterLink>
-                <Button size="lg" className="group w-full sm:w-auto">
-                  Start building free
-                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                </Button>
-              </RegisterLink>
-              <LoginLink>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Open dashboard
-                </Button>
-              </LoginLink>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-border/70 bg-card/75 p-4">
-                <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
-                  <Clock3 className="size-4 text-primary" />
-                  Faster launches
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Replace brittle scripts with reusable visual workflows your entire team can maintain.
+            <AnimatedSection delay={0} direction="up">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary sm:text-sm">
+                <Sparkles className="size-4 animate-[spin_3s_linear_infinite]" />
+                AI orchestration for modern teams
+              </div>
+            </AnimatedSection>
+            <AnimatedSection delay={100} direction="up">
+              <div className="space-y-4">
+                <h1 className="text-balance text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                  Build production workflows with{" "}
+                  <span className="bg-gradient-to-r from-primary via-chart-2 to-chart-1 bg-clip-text text-transparent">
+                    AI
+                  </span>{" "}
+                  in one visual canvas
+                </h1>
+                <p className="max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
+                  Ai Worflow Builder helps teams design, test, and scale agent-driven workflows
+                  without glue code. Go from idea to live automation in minutes, not weeks.
                 </p>
               </div>
-              <div className="rounded-xl border border-border/70 bg-card/75 p-4">
-                <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
-                  <Layers3 className="size-4 text-primary" />
-                  Unified execution
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Orchestrate prompts, APIs, and custom logic in one runtime with full visibility.
-                </p>
+            </AnimatedSection>
+            <AnimatedSection delay={250} direction="up">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <RegisterLink>
+                  <Button size="lg" className="group w-full sm:w-auto">
+                    Start building free
+                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                  </Button>
+                </RegisterLink>
+                <LoginLink>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    Open dashboard
+                  </Button>
+                </LoginLink>
               </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/85 p-5 shadow-2xl shadow-primary/12 sm:p-6">
-              <div className="mb-5 flex items-center justify-between rounded-xl border border-border/70 bg-background/80 px-4 py-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Active workflow</p>
-                  <p className="font-semibold">Support Triage Automation</p>
-                </div>
-                <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-600">
-                  Healthy
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  "Incoming ticket trigger",
-                  "AI classification and tagging",
-                  "Priority routing decision",
-                  "Knowledge-base response draft",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center justify-between rounded-xl border border-border/70 bg-background/70 px-3 py-2.5"
-                  >
-                    <span className="text-sm font-medium">{item}</span>
-                    <Check className="size-4 text-emerald-500" />
+            </AnimatedSection>
+            <AnimatedSection delay={400} direction="up">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-border/70 bg-card/75 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
+                  <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
+                    <Clock3 className="size-4 text-primary" />
+                    Faster launches
                   </div>
-                ))}
+                  <p className="text-sm text-muted-foreground">
+                    Replace brittle scripts with reusable visual workflows your entire team
+                    can maintain.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/70 bg-card/75 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
+                  <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
+                    <Layers3 className="size-4 text-primary" />
+                    Unified execution
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Orchestrate prompts, APIs, and custom logic in one runtime with full
+                    visibility.
+                  </p>
+                </div>
               </div>
-
-              <div className="mt-5 rounded-xl border border-primary/30 bg-primary/10 p-3.5">
-                <p className="text-sm font-semibold">Last run summary</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  1,236 tickets processed this week with 98.7% confidence and human review on critical cases.
-                </p>
-              </div>
-            </div>
-            <div className="absolute -bottom-7 -left-6 hidden rounded-xl border border-border/70 bg-card/90 p-3 shadow-lg backdrop-blur sm:block">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <BrainCircuit className="size-4 text-primary" />
-                AI assistance enabled on each node
-              </div>
-            </div>
+            </AnimatedSection>
           </div>
+
+          {/* Hero illustration card */}
+          <AnimatedSection delay={300} direction="right">
+            <div className="relative">
+              <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/85 p-5 shadow-2xl shadow-primary/12 sm:p-6 transition-all duration-500 hover:shadow-primary/20">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Active workflow
+                    </p>
+                    <p className="font-semibold">Support Triage Automation</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                    Live preview
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-3 sm:p-4">
+                  <HeroLottie />
+                </div>
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    Incoming ticket trigger
+                  </div>
+                  <div className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    AI classification
+                  </div>
+                  <div className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    Priority routing
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
+      {/* ─── Stats ─── */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="grid gap-3 rounded-2xl border border-border/70 bg-card/70 p-5 sm:grid-cols-2 sm:gap-4 sm:p-6 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-border/60 bg-background/70 p-4">
-              <p className="text-2xl font-black sm:text-3xl">{stat.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="features" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
-        <div className="mb-8 max-w-2xl">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">Features</p>
-          <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything you need to automate high-impact work</h2>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {featureCards.map((feature) => (
-            <article
-              key={feature.title}
-              className="rounded-2xl border border-border/70 bg-card/75 p-6 transition-transform duration-300 hover:-translate-y-1"
-            >
-              <div className="mb-4 inline-flex rounded-lg border border-primary/35 bg-primary/12 p-2.5 text-primary">
-                <feature.icon className="size-5" />
-              </div>
-              <h3 className="mb-2 text-xl font-bold">{feature.title}</h3>
-              <p className="text-sm leading-6 text-muted-foreground">{feature.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="how-it-works" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-border/70 bg-card/70 p-6 sm:p-8 lg:p-10">
-          <div className="mb-8 flex flex-col gap-2">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">How it works</p>
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">From concept to live operations in 3 steps</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {steps.map((step, index) => (
-              <div key={step.title} className="rounded-2xl border border-border/70 bg-background/70 p-5">
-                <p className="mb-3 text-sm font-semibold text-primary">0{index + 1}</p>
-                <h3 className="mb-2 text-lg font-bold">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
-              </div>
+        <AnimatedSection direction="up">
+          <div className="grid gap-3 rounded-2xl border border-border/70 bg-card/70 p-5 sm:grid-cols-2 sm:gap-4 sm:p-6 lg:grid-cols-4">
+            {stats.map((stat, i) => (
+              <AnimatedSection key={stat.label} delay={i * 100} direction="up">
+                <div className="rounded-xl border border-border/60 bg-background/70 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
+                  <p className="text-2xl font-black sm:text-3xl">
+                    <AnimatedCounter value={stat.value} />
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+                </div>
+              </AnimatedSection>
             ))}
           </div>
-        </div>
+        </AnimatedSection>
       </section>
 
-      <section id="pricing" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
+      {/* ─── Features ─── */}
+      <section id="features" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
+        <AnimatedSection direction="up">
+          <div className="mb-8 max-w-2xl">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">
+              Features
+            </p>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Everything you need to automate high-impact work
+            </h2>
+          </div>
+        </AnimatedSection>
         <div className="grid gap-4 md:grid-cols-2">
-          <article className="rounded-2xl border border-border/70 bg-card/75 p-6">
-            <p className="mb-1 text-sm font-semibold text-primary">Starter</p>
-            <h3 className="text-2xl font-black">$0</h3>
-            <p className="mt-1 text-sm text-muted-foreground">For individuals prototyping AI workflows.</p>
-            <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Up to 3 active workflows</li>
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Core node library</li>
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Community support</li>
-            </ul>
-            <RegisterLink>
-              <Button className="mt-6 w-full">Start free</Button>
-            </RegisterLink>
-          </article>
-
-          <article className="relative rounded-2xl border border-primary/45 bg-primary/7 p-6 shadow-xl shadow-primary/10">
-            <span className="absolute right-4 top-4 rounded-full border border-primary/35 bg-primary/12 px-2.5 py-1 text-xs font-semibold text-primary">
-              Most popular
-            </span>
-            <p className="mb-1 text-sm font-semibold text-primary">Scale</p>
-            <h3 className="text-2xl font-black">$49</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Per seat / month for teams running mission-critical flows.</p>
-            <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Unlimited workflows and runs</li>
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Advanced AI controls and guardrails</li>
-              <li className="flex items-center gap-2"><Check className="size-4 text-emerald-500" />Priority support and onboarding</li>
-            </ul>
-            <RegisterLink>
-              <Button className="mt-6 w-full">Book a demo</Button>
-            </RegisterLink>
-          </article>
-        </div>
-      </section>
-
-      <section id="faq" className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">FAQ</p>
-          <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Questions teams ask before they launch</h2>
-        </div>
-        <div className="space-y-3">
-          {faqs.map((item) => (
-            <article key={item.question} className="rounded-xl border border-border/70 bg-card/70 p-5">
-              <h3 className="text-base font-bold sm:text-lg">{item.question}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.answer}</p>
-            </article>
+          {featureCards.map((feature, i) => (
+            <AnimatedSection key={feature.title} delay={i * 120} direction="up">
+              <article className="group h-full rounded-2xl border border-border/70 bg-card/75 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/8">
+                <div className="mb-4 inline-flex rounded-lg border border-primary/35 bg-primary/12 p-2.5 text-primary transition-transform duration-300 group-hover:scale-110">
+                  <feature.icon className="size-5" />
+                </div>
+                <h3 className="mb-2 text-xl font-bold">{feature.title}</h3>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {feature.description}
+                </p>
+              </article>
+            </AnimatedSection>
           ))}
         </div>
       </section>
 
-      <footer className="border-t border-border/70 bg-background/70 py-8">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <Logo />
-          <p className="text-sm text-muted-foreground">
-            Built for teams automating work with AI, safely and at scale.
-          </p>
+      {/* ─── How it works ─── */}
+      <section id="how-it-works" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
+        <AnimatedSection direction="up">
+          <div className="rounded-3xl border border-border/70 bg-card/70 p-6 sm:p-8 lg:p-10">
+            <div className="mb-8 flex flex-col gap-2">
+              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+                How it works
+              </p>
+              <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+                From concept to live operations in 3 steps
+              </h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {steps.map((step, index) => (
+                <AnimatedSection key={step.title} delay={index * 200} direction="up">
+                  <div className="group h-full rounded-2xl border border-border/70 bg-background/70 p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+                    <p className="mb-3 text-sm font-semibold text-primary transition-transform duration-300 group-hover:scale-110 inline-block">
+                      0{index + 1}
+                    </p>
+                    <h3 className="mb-2 text-lg font-bold">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ─── Pricing ─── */}
+      <section id="pricing" className="mx-auto w-full max-w-6xl px-4 pb-18 sm:px-6 lg:px-8">
+        <div className="grid gap-4 md:grid-cols-2">
+          <AnimatedSection delay={0} direction="left">
+            <article className="h-full rounded-2xl border border-border/70 bg-card/75 p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
+              <p className="mb-1 text-sm font-semibold text-primary">Starter</p>
+              <h3 className="text-2xl font-black">$0</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                For individuals prototyping AI workflows.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Up to 3 active workflows
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Core node library
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Community support
+                </li>
+              </ul>
+              <RegisterLink>
+                <Button className="mt-6 w-full">Start free</Button>
+              </RegisterLink>
+            </article>
+          </AnimatedSection>
+
+          <AnimatedSection delay={150} direction="right">
+            <article className="relative h-full rounded-2xl border border-primary/45 bg-primary/7 p-6 shadow-xl shadow-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/15">
+              <span className="absolute right-4 top-4 rounded-full border border-primary/35 bg-primary/12 px-2.5 py-1 text-xs font-semibold text-primary animate-[pulse_2s_ease-in-out_infinite]">
+                Most popular
+              </span>
+              <p className="mb-1 text-sm font-semibold text-primary">Scale</p>
+              <h3 className="text-2xl font-black">$49</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Per seat / month for teams running mission-critical flows.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Unlimited workflows and runs
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Advanced AI controls and guardrails
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="size-4 text-emerald-500" />
+                  Priority support and onboarding
+                </li>
+              </ul>
+              <RegisterLink>
+                <Button className="mt-6 w-full">Book a demo</Button>
+              </RegisterLink>
+            </article>
+          </AnimatedSection>
         </div>
-      </footer>
+      </section>
+
+      {/* ─── FAQ ─── */}
+      <section id="faq" className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+        <AnimatedSection direction="up">
+          <div className="mb-6">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">
+              FAQ
+            </p>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Questions teams ask before they launch
+            </h2>
+          </div>
+        </AnimatedSection>
+        <div className="space-y-3">
+          {faqs.map((item, i) => (
+            <AnimatedSection key={item.question} delay={i * 100} direction="up">
+              <article className="rounded-xl border border-border/70 bg-card/70 p-5 transition-all duration-300 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
+                <h3 className="text-base font-bold sm:text-lg">{item.question}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {item.answer}
+                </p>
+              </article>
+            </AnimatedSection>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Footer ─── */}
+      <AnimatedSection direction="up">
+        <footer className="border-t border-border/70 bg-background/70 py-8">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+       
+            <p className="text-sm text-muted-foreground">
+              Built for teams automating work with AI, safely and at scale.
+            </p>
+          </div>
+        </footer>
+      </AnimatedSection>
     </main>
   );
 };

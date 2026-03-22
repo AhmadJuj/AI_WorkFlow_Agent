@@ -19,7 +19,7 @@ export default function CodeDialog({ workflowId }: { workflowId?: string }) {
 
   const domain = process.env.NEXT_PUBLIC_APP_URL;
 
-  const code = `<script src="${domain}/embed/embed.min.js" data-workflow-id="${workflowId}"></script>`;
+  const code = `<script src="${domain}/embed/embed.js" data-workflow-id="${workflowId}"></script>`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(code);

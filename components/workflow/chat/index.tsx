@@ -20,7 +20,7 @@ const Chat = ({ open, onOpenChange, workflowId }: ChatProps) => {
     >
       <SheetContent
         side="right"
-        showCloseButton={false}
+        showCloseButton={true}
         className="z-95 w-full gap-0 overflow-hidden rounded-none bg-background p-0 sm:max-w-lg"
         overlayClass="bg-black/5! backdrop-blur-none!"
       >
