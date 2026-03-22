@@ -8,12 +8,17 @@ interface UseUnsavedChangesReturn {
 }
 
 export function useUnsavedChanges(
-  nodes: Node[],
-  edges: Edge[]
+  nodes: Node[] | undefined,
+  edges: Edge[] | undefined
 ): UseUnsavedChangesReturn {
   const { savedNodes, savedEdges } = useWorkflowStore();
 
   const hasUnsavedChanges = useMemo(() => {
+    const currentNodes = nodes ?? [];
+    const currentEdges = edges ?? [];
+    const baselineNodes = savedNodes ?? [];
+    const baselineEdges = savedEdges ?? [];
+
     const nodeData = (list: Node[]) =>
       list.map((n) => ({ id: n.id, type: n.type, data: n.data }));
     
@@ -21,8 +26,8 @@ export function useUnsavedChanges(
       list.map((e) => ({ source: e.source, target: e.target, id: e.id }));
 
     return (
-      JSON.stringify(nodeData(nodes)) !== JSON.stringify(nodeData(savedNodes)) ||
-      JSON.stringify(edgeData(edges)) !== JSON.stringify(edgeData(savedEdges))
+      JSON.stringify(nodeData(currentNodes)) !== JSON.stringify(nodeData(baselineNodes)) ||
+      JSON.stringify(edgeData(currentEdges)) !== JSON.stringify(edgeData(baselineEdges))
     );
   }, [nodes, edges, savedNodes, savedEdges]);
 

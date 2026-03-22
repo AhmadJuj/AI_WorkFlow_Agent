@@ -62,7 +62,12 @@ export async function PUT(
     const session = await getKindeServerSession();
     const user = await session.getUser();
 
-    if (!user || !user.id) throw new Error("Unauthorized");
+    if (!user || !user.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
     const workflow = await prisma.workflow.findFirst({
       where: {

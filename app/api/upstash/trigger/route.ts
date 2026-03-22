@@ -40,6 +40,16 @@ function getPublicBaseUrl(request: Request): string | null {
 export async function POST(request: Request) {
   const { messages, workflowId } = await request.json();
 
+  if (!workflowId || !Array.isArray(messages)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Invalid request body. Expected workflowId and messages.",
+      },
+      { status: 400 }
+    );
+  }
+
   const baseUrl = getPublicBaseUrl(request);
   if (!baseUrl) {
     return NextResponse.json(
@@ -53,13 +63,16 @@ export async function POST(request: Request) {
   }
 
   try {
+    const headers: Record<string, string> = {};
+    if (process.env.VERCEL_PROTECTION_BYPASS_TOKEN) {
+      headers["x-vercel-protection-bypass"] = process.env.VERCEL_PROTECTION_BYPASS_TOKEN;
+    }
+
     const { workflowRunId } = await client.trigger({
       url: `${baseUrl}/api/workflow/chat`,
       retries: 3,
       keepTriggerConfig: true,
-      headers: {
-        "x-vercel-protection-bypass": process.env.VERCEL_PROTECTION_BYPASS_TOKEN!,
-      },
+      headers,
       body: {
         workflowId,
         messages
@@ -72,11 +85,14 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: "Failed",
-      status: 500
-    });
+      console.error("Failed to trigger workflow:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: error instanceof Error ? error.message : "Failed to trigger workflow",
+        },
+        { status: 500 }
+      );
   }
 }
 

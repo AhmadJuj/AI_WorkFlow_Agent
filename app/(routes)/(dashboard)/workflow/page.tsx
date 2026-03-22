@@ -8,11 +8,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
 const WorkflowPage = () => {
-  const { data, isPending } = useGetWorkflows();
+  const { data, isPending, error } = useGetWorkflows();
   const workflows = data || [];
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (!error) return;
+
+    const message =
+      error instanceof AxiosError && typeof error.response?.data?.error === 'string'
+        ? error.response.data.error
+        : 'Failed to load workflows';
+
+    toast.error(message);
+  }, [error]);
 
   return (
     <div className="min-h-auto">

@@ -22,11 +22,24 @@ export const createWorkflowTransport = ({ workflowId }: { workflowId: string }) 
     },
     fetch: async (input, init) => {
       const triggerRes = await fetch(input, init);
-      const data = await triggerRes.json();
+
+      let data: { workflowRunId?: string; error?: string; success?: boolean } | null = null;
+      try {
+        data = await triggerRes.json();
+      } catch {
+        if (!triggerRes.ok) {
+          throw new Error(`Failed to trigger workflow: ${triggerRes.status}`);
+        }
+      }
+
+      if (!triggerRes.ok) {
+        throw new Error(data?.error || `Failed to trigger workflow: ${triggerRes.status}`);
+      }
+
       const workflowRunId = data?.workflowRunId;
 
       if (!workflowRunId) {
-        return new Response("Missing workflow run id", { status: 500 });
+        throw new Error(data?.error || "Missing workflow run id");
       }
 
       return fetch(`/api/workflow/chat?id=${encodeURIComponent(workflowRunId)}`, {

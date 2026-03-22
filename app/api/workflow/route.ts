@@ -2,10 +2,30 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+const getUserSafely = async () => {
   try {
     const session = await getKindeServerSession();
     const user = await session.getUser();
+    return user;
+  } catch (error) {
+    console.error("Auth session error:", error);
+    return null;
+  }
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (!(error instanceof Error)) return fallback;
+
+  if (error.message.includes("DATABASE_URL")) {
+    return "Database is not configured. Set DATABASE_URL in environment variables.";
+  }
+
+  return error.message || fallback;
+};
+
+export async function GET(req: Request) {
+  try {
+    const user = await getUserSafely();
 
     if (!user || !user.id) {
       return NextResponse.json(
@@ -27,7 +47,7 @@ export async function GET(req: Request) {
     console.error("Error fetching workflows:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to fetch workflows",
+        error: getErrorMessage(error, "Failed to fetch workflows"),
       },
       { status: 500 }
     );
@@ -38,8 +58,7 @@ export async function POST(req: Request) {
   try {
     const { name, description } = await req.json();
     
-    const session = await getKindeServerSession();
-    const user = await session.getUser();
+    const user = await getUserSafely();
 
     if (!user || !user.id) {
       return NextResponse.json(
@@ -73,7 +92,7 @@ export async function POST(req: Request) {
     console.error("Error creating workflow:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to create workflow",
+        error: getErrorMessage(error, "Failed to create workflow"),
       },
       { status: 500 }
     );

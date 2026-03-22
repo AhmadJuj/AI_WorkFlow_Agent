@@ -28,6 +28,18 @@ type WorkflowType = {
   flowObject: string | WorkflowFlowObject;
 };
 
+const getAxiosErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof AxiosError && typeof error.response?.data?.error === "string") {
+    return error.response.data.error;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
 const parseFlowObject = (
   flowObject: WorkflowType["flowObject"]
 ): WorkflowFlowObject => {
@@ -45,6 +57,8 @@ export const useGetWorkflows = () => {
       await axios
         .get<{ data: Workflow[] }>("/api/workflow")
         .then((res) => res.data.data),
+    retry: false,
+    throwOnError: false,
   });
 };
 
@@ -67,7 +81,7 @@ export const useCreateWorkflow = () => {
 
     onError: (error) => {
       console.log(error);
-      toast.error("Failed to create workflow");
+      toast.error(getAxiosErrorMessage(error, "Failed to create workflow"));
     },
   });
 };
