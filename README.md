@@ -53,8 +53,8 @@ bun install
 Create a `.env.local` file in the root directory:
 ```bash
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/ai_workflow"
-DIRECT_URL="postgresql://user:password@localhost:5432/ai_workflow"
+DATABASE_URL="mongodb_url"
+DIRECT_URL="mongodb_url
 
 # Authentication (Kinde)
 KINDE_CLIENT_ID=your_kinde_client_id
